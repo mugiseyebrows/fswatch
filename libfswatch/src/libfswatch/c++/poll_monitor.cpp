@@ -37,6 +37,10 @@ using namespace std;
 #  define FSW_CTIME(stat) (stat.st_ctimespec.tv_sec)
 #endif
 
+#ifdef HAVE_MSYS
+#include "libfswatch/c++/windows/msys/file-type.h"
+#endif
+
 namespace fsw
 {
   typedef struct poll_monitor::poll_monitor_data

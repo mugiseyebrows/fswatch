@@ -39,6 +39,10 @@
 #  include <getopt.h>
 #endif
 
+#ifdef HAVE_MSYS
+#include "libfswatch/c++/windows/msys/realpath.h"
+#endif
+
 #define _(String) gettext(String)
 
 using namespace std;
@@ -293,6 +297,9 @@ static bool validate_latency(double latency)
 
 static void register_signal_handlers()
 {
+
+#ifndef HAVE_MSYS
+
   struct sigaction action;
   action.sa_handler = close_handler;
   sigemptyset(&action.sa_mask);
@@ -324,6 +331,8 @@ static void register_signal_handlers()
   {
     cerr << _("SIGINT handler registration failed") << endl;
   }
+
+#endif
 }
 
 static void print_event_path(const event& evt)

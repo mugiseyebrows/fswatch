@@ -24,6 +24,10 @@
 
 using namespace std;
 
+#ifdef HAVE_MSYS
+#include "libfswatch/c++/windows/msys/realpath.h"
+#endif
+
 namespace fsw
 {
   vector<string> get_directory_children(const string& path)
@@ -80,13 +84,17 @@ namespace fsw
 
   bool lstat_path(const string& path, struct stat& fd_stat)
   {
-    if (lstat(path.c_str(), &fd_stat) != 0)
-    {
-      fsw_logf_perror(_("Cannot lstat %s"), path.c_str());
+#ifdef HAVE_MSYS
+      return stat_path(path,fd_stat);
+#else
+      if (lstat(path.c_str(), &fd_stat) != 0)
+      {
+        fsw_logf_perror(_("Cannot lstat %s"), path.c_str());
 
-      return false;
-    }
+        return false;
+      }
 
-    return true;
+      return true;
+#endif
   }
 }

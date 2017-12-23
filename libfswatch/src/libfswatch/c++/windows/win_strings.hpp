@@ -54,6 +54,22 @@ namespace fsw
      * @return The converted string.
      */
     std::string wstring_to_string(const std::wstring& s);
+
+    /**
+     * @brief Converts a string into a wide character string.
+     *
+     * @param s The @c char_t array to convert.
+     * @return The converted string.
+     */
+    std::wstring string_to_wstring(char* s);
+
+    /**
+     * @brief Converts a string into a wide character string.
+     *
+     * @param s The string to convert.
+     * @return The converted string.
+     */
+    std::wstring string_to_wstring(const std::string& s);
   }
 }
 

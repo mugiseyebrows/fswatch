@@ -77,9 +77,18 @@ if (HAVE_PORT_H)
 endif (HAVE_PORT_H)
 
 if (WIN32)
-    CHECK_INCLUDE_FILES(sys/cygwin.h HAVE_CYGWIN)
 
-    if (HAVE_CYGWIN)
+    add_definitions(-DHAVE_WINDOWS)
+
+    if(MSYS)
+      add_definitions(-DHAVE_MSYS)
+    endif(MSYS)
+
+    if (CYGWIN)
+      add_definitions(-DHAVE_CYGWIN)
+    endif(CYGWIN)
+
+    if (CYGWIN OR MSYS)
         set(LIB_SOURCE_FILES
                 ${LIB_SOURCE_FILES}
                 src/libfswatch/c++/windows/win_directory_change_event.cpp
@@ -94,8 +103,20 @@ if (WIN32)
                 src/libfswatch/c++/windows/win_strings.hpp
                 src/libfswatch/c++/windows_monitor.cpp
                 src/libfswatch/c++/windows_monitor.hpp)
-        add_definitions(-DHAVE_WINDOWS)
-    endif (HAVE_CYGWIN)
+
+    endif (CYGWIN OR MSYS)
+
+    if (MSYS)
+      set(LIB_SOURCE_FILES
+        ${LIB_SOURCE_FILES}
+        src/libfswatch/c++/windows/msys/file-type.h
+        src/libfswatch/c++/windows/msys/libfswatch_config.h
+        src/libfswatch/c++/windows/msys/realpath.cpp
+        src/libfswatch/c++/windows/msys/realpath.h)
+    else(MSYS)
+      message("no HAVE_MSYS")
+    endif(MSYS)
+
 endif (WIN32)
 
 if (APPLE)
@@ -113,6 +134,14 @@ if (APPLE)
     endif (HAVE_FSEVENTS_FILE_EVENTS)
 endif (APPLE)
 
-add_library(libfswatch ${LIB_SOURCE_FILES})
+add_library(libfswatch SHARED ${LIB_SOURCE_FILES})
 target_include_directories(libfswatch PUBLIC src)
-target_link_libraries(libfswatch ${CORESERVICES_LIBRARY})
+target_link_libraries(libfswatch ${CORESERVICES_LIBRARY} pcreposix)
+set_target_properties(libfswatch PROPERTIES OUTPUT_NAME fswatch)
+
+if (MSYS)
+  # specifying /mingw32/bin /mingw32/include doesn't work - it says Installing but files are not there
+  # suppose CMAKE_ROOT is C:/msys64/mingw32/share/cmake-3.9 then we need to cd ../../ from there to get to C:/msys64/mingw32
+  install(TARGETS libfswatch DESTINATION "${CMAKE_ROOT}/../../bin" )
+  install(DIRECTORY src/libfswatch DESTINATION "${CMAKE_ROOT}/../../include" )
+endif(MSYS)

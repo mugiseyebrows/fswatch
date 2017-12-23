@@ -24,16 +24,26 @@ namespace fsw
 
     string wstring_to_string(wchar_t * s)
     {
-      int buf_size = WideCharToMultiByte(CP_UTF8, 0, s, -1, NULL, 0, NULL, NULL);
+      int buf_size = WideCharToMultiByte(CP_UTF8, 0, s, -1, NULL, 0, NULL, NULL) + 1;
       char buf[buf_size];
       WideCharToMultiByte(CP_UTF8, 0, s, -1, buf, buf_size, NULL, NULL);
-
       return string(buf);
     }
 
     string wstring_to_string(const wstring & s)
     {
       return wstring_to_string((wchar_t *)s.c_str());
+    }
+
+    wstring string_to_wstring(char* s) {
+        int buf_size = MultiByteToWideChar(CP_UTF8,0,s,-1,0,0);
+        wchar_t buf[buf_size];
+        MultiByteToWideChar(CP_UTF8,0,s,-1,buf,buf_size);
+        return wstring(buf);
+    }
+
+    wstring string_to_wstring(const string& s) {
+        return string_to_wstring((char*)s.c_str());
     }
   }
 }
