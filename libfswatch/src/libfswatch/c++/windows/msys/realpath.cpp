@@ -11,6 +11,7 @@ I am placing this in the public domain for anyone to use or modify
 #include <limits.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include "realpath.h"
 
 char *realpath(const char *path, char resolved_path[PATH_MAX])
 {
@@ -39,7 +40,7 @@ char *realpath(const char *path, char resolved_path[PATH_MAX])
         if (return_path != resolved_path) //Malloc'd buffer - Unstandard extension retry
         {
           size_t new_size;
-          
+
           free(return_path);
           return_path = (char*)malloc(size);
 
@@ -63,7 +64,7 @@ char *realpath(const char *path, char resolved_path[PATH_MAX])
             //I wasn't sure what to return here, but the standard does say to return EINVAL
             //if resolved_path is null, and in this case we couldn't malloc large enough buffer
             errno = EINVAL;
-          }  
+          }
         }
         else //resolved_path buffer isn't big enough
         {
@@ -73,13 +74,13 @@ char *realpath(const char *path, char resolved_path[PATH_MAX])
       }
 
       //GetFullPathNameA() returns 0 if some path resolve problem occured
-      if (!size) 
+      if (!size)
       {
         if (return_path != resolved_path) //Malloc'd buffer
         {
           free(return_path);
         }
-        
+
         return_path = 0;
 
         //Convert MS errors into standard errors
@@ -96,7 +97,7 @@ char *realpath(const char *path, char resolved_path[PATH_MAX])
           case ERROR_ACCESS_DENIED:
             errno = EACCES;
             break;
-          
+
           default: //Unknown Error
             errno = EIO;
             break;
@@ -109,13 +110,13 @@ char *realpath(const char *path, char resolved_path[PATH_MAX])
         struct stat stat_buffer;
 
         //Make sure path exists, stat() returns 0 on success
-        if (stat(return_path, &stat_buffer)) 
+        if (stat(return_path, &stat_buffer))
         {
           if (return_path != resolved_path)
           {
             free(return_path);
           }
-        
+
           return_path = 0;
           //stat() will set the correct errno for us
         }
@@ -131,6 +132,6 @@ char *realpath(const char *path, char resolved_path[PATH_MAX])
   {
     errno = EINVAL;
   }
-    
+
   return return_path;
 }

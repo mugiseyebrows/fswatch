@@ -40,7 +40,7 @@
 #endif
 
 #ifdef HAVE_MSYS
-#include "libfswatch/c++/windows/msys/realpath.h"
+#include "realpath.h"
 #endif
 
 #define _(String) gettext(String)
@@ -444,9 +444,9 @@ static void start_monitor(int argc, char **argv, int optind)
 
   for (auto i = optind; i < argc; ++i)
   {
+
     char *real_path = realpath(argv[i], nullptr);
     string path(real_path ? real_path : argv[i]);
-
     if (real_path) free(real_path);
 
     FSW_ELOGF(_("Adding path: %s\n"), path.c_str());

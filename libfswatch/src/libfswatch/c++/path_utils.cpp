@@ -25,13 +25,45 @@
 using namespace std;
 
 #ifdef HAVE_MSYS
-#include "libfswatch/c++/windows/msys/realpath.h"
+#include <windows.h>
+#include "realpath.h"
+#include "c++/windows/win_strings.hpp"
 #endif
 
 namespace fsw
 {
   vector<string> get_directory_children(const string& path)
   {
+
+#ifdef HAVE_MSYS
+
+      // for some reason opendir,readdir,FindFirstFileA,FindNextFileA are not good with unicode names on windows
+      vector<string> children;
+      WIN32_FIND_DATAW FindFileData;
+      HANDLE hFind;
+      wstring exp = win_strings::string_to_wstring(path + "\\*");
+      hFind = FindFirstFileW(exp.c_str(), &FindFileData);
+     if (hFind == INVALID_HANDLE_VALUE)
+     {
+        printf("FindFirstFile failed (%d)\n", GetLastError());
+        return children;
+     }
+     else
+     {
+         wstring wchild = wstring(FindFileData.cFileName);
+         string child = win_strings::wstring_to_string(wchild);
+         children.push_back(child);
+         while(FindNextFileW(hFind,&FindFileData) != 0) {
+             wchild = wstring(FindFileData.cFileName);
+             child = win_strings::wstring_to_string(wchild);
+             children.push_back(child);
+         }
+        FindClose(hFind);
+     }
+     return children;
+
+#else
+
     vector<string> children;
     DIR *dir = opendir(path.c_str());
 
@@ -57,6 +89,8 @@ namespace fsw
     closedir(dir);
 
     return children;
+
+#endif
   }
 
   bool read_link_path(const string& path, string& link_path)
@@ -71,7 +105,7 @@ namespace fsw
   }
 
   bool stat_path(const string& path, struct stat& fd_stat)
-  {
+  {      
     if (stat(path.c_str(), &fd_stat) != 0)
     {
       fsw_logf_perror(_("Cannot stat %s"), path.c_str());
@@ -84,8 +118,19 @@ namespace fsw
 
   bool lstat_path(const string& path, struct stat& fd_stat)
   {
+
+
 #ifdef HAVE_MSYS
-      return stat_path(path,fd_stat);
+
+    wstring wpath = win_strings::string_to_wstring(path);
+
+      if (wstat(wpath.c_str(), &fd_stat) != 0)
+          {
+            fsw_logf_perror(_("Cannot stat %s"), path.c_str());
+
+            return false;
+          }
+      return true;
 #else
       if (lstat(path.c_str(), &fd_stat) != 0)
       {

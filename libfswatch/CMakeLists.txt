@@ -13,10 +13,18 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-include_directories(.. src/libfswatch)
-add_definitions(-DHAVE_CONFIG_H)
+include_directories(.. src/libfswatch src/libfswatch/c++/windows/msys)
+
+if (HAVE_CONFIG_H)
+	add_definitions(-DHAVE_CONFIG_H)
+	set(LIB_SOURCE_FILES
+		../libfswatch_config.h)
+else(HAVE_CONFIG_H)
+	add_definitions(-DHAVE_STRUCT_STAT_ST_MTIME)
+endif(HAVE_CONFIG_H)
 
 set(LIB_SOURCE_FILES
+	${LIB_SOURCE_FILES}
         src/libfswatch/c/cevent.cpp
         src/libfswatch/c/cevent.h
         src/libfswatch/c/cfilter.h
@@ -44,8 +52,7 @@ set(LIB_SOURCE_FILES
         src/libfswatch/c++/string/string_utils.cpp
         src/libfswatch/c++/string/string_utils.hpp
         src/libfswatch/gettext.h
-        src/libfswatch/gettext_defs.h
-        ../libfswatch_config.h)
+        src/libfswatch/gettext_defs.h)
 
 INCLUDE(CheckIncludeFiles)
 
@@ -79,6 +86,7 @@ endif (HAVE_PORT_H)
 if (WIN32)
 
     add_definitions(-DHAVE_WINDOWS)
+		add_definitions(-DHAVE_STRUCT_STAT_ST_MTIME)
 
     if(MSYS)
       add_definitions(-DHAVE_MSYS)
@@ -110,11 +118,8 @@ if (WIN32)
       set(LIB_SOURCE_FILES
         ${LIB_SOURCE_FILES}
         src/libfswatch/c++/windows/msys/file-type.h
-        src/libfswatch/c++/windows/msys/libfswatch_config.h
-        src/libfswatch/c++/windows/msys/realpath.cpp
-        src/libfswatch/c++/windows/msys/realpath.h)
-    else(MSYS)
-      message("no HAVE_MSYS")
+				src/libfswatch/c++/windows/msys/realpath.cpp
+				src/libfswatch/c++/windows/msys/realpath.h)
     endif(MSYS)
 
 endif (WIN32)
@@ -134,7 +139,7 @@ if (APPLE)
     endif (HAVE_FSEVENTS_FILE_EVENTS)
 endif (APPLE)
 
-add_library(libfswatch SHARED ${LIB_SOURCE_FILES})
+add_library(libfswatch ${LIB_SOURCE_FILES})
 target_include_directories(libfswatch PUBLIC src)
 target_link_libraries(libfswatch ${CORESERVICES_LIBRARY} pcreposix)
 set_target_properties(libfswatch PROPERTIES OUTPUT_NAME fswatch)

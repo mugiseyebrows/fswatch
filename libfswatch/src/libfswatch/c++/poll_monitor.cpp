@@ -129,7 +129,10 @@ namespace fsw
   void poll_monitor::scan(const string& path, poll_monitor_scan_callback fn)
   {
     struct stat fd_stat;
-    if (!lstat_path(path, fd_stat)) return;
+    if (!lstat_path(path, fd_stat)) {
+        std::cout << "!lstat_path" << path;
+    }
+
 
     if (follow_symlinks && S_ISLNK(fd_stat.st_mode))
     {
